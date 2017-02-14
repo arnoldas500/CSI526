@@ -197,7 +197,7 @@ public class ImageHiding extends JFrame implements ActionListener
   }
  }
 
- public ImageHiding()
+ public ImageHiding() throws IOException
  {
   GridBagLayout layout = new GridBagLayout();
   GridBagConstraints gbc = new GridBagConstraints();
@@ -259,11 +259,14 @@ public class ImageHiding extends JFrame implements ActionListener
   host.encode(this.getSecretImage(), this.getBits());
   hostCanvas.setImage(host.getImage());
 
+  StegByte secret = new StegByte(this.getByteArray());
+  
+  /*
   Steganography secret = new Steganography(this.getSecretImage());
   //look here
   secret.getMaskedImage(this.getBits());
   secretCanvas.setImage(secret.getImage());
-
+*/
   this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
   this.pack();
 
@@ -279,6 +282,7 @@ public class ImageHiding extends JFrame implements ActionListener
   frame.setVisible(true);
   
   byte[] test = getByteArray();
+  System.out.println("length of file is "+test.length);
   byteToFile(test);
   
  }
@@ -309,6 +313,18 @@ public class ImageHiding extends JFrame implements ActionListener
   }
  }
 }
+
+
+class StegByte{
+	byte[] image;
+	
+	//test to see if works with byte[] aray rather than image
+	 public StegByte(byte[] bs)
+	 {
+	  this.image = bs;
+	 }
+}
+
 
 class Steganography
 {
@@ -358,4 +374,6 @@ class Steganography
  {
   this.image = image;
  }
+ 
+ 
 }
