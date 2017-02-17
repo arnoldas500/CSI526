@@ -4,6 +4,8 @@ import java.awt.event.*;
 import java.awt.image.*;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -73,9 +75,59 @@ public class ImageHiding extends JFrame implements ActionListener
 	 byte[] data = Files.readAllBytes(path);
 	 return data;
 	 
-	 //convert this into an int array 
-	 //return an int array thats ready to go
+//	 //convert this into an int array 
+//	 //return an int array thats ready to go
+//	 
+//	 //n is the number of encode bits that we can specify
+//	 int n = 2;
+//	 int x = 1;
+//	 int i,o = 1;
+//	 int inputLen = 0;
+//	 inputLen = (data.length * 8) / n;
+//	 int[] outputArry = new int[inputLen];
+//	 
+//	 while(x<= inputLen){
+//		 outputArry[o] = (data[i] & mask) | outputArry[o];
+//		 outputArry[o] = outputArry[o] << 8;
+//		 data[i] = data[i] >>> n;
+//		 if((o % 4) == 0){
+//			 o++;
+//		 }
+//		 if((i % (8/n)) == 0){
+//			 i++;
+//		 }
+//	 }
+	 
+	 
+	 
  }
+ 
+ //method that has my algorithm for taking an int array and 
+ 
+ //method to convert from byte array to int array
+ //method takes in a byte array and returns and int array
+ public static int byteArrayToIntArray(byte[] byt){
+	 final ByteBuffer byteBuffer = ByteBuffer.wrap(byt);
+	 byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+	 return byteBuffer.getInt();
+ }
+ 
+ public static int[] toIntArray(byte[] byt){
+	 int size = (byt.length / 4) + ((byt.length % 4 == 0) ? 0:1);
+	 ByteBuffer byteBuffer = ByteBuffer.allocate(size*4);
+	 byteBuffer.put(byt);
+	 
+	 byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+	 
+	 int[] output = new int[size];
+	 byteBuffer.rewind();
+	 while(byteBuffer.remaining()>0){
+		 output[byteBuffer.position()/4] = byteBuffer.getInt();
+	 }
+	 return output;
+ }
+ 
+ //method that takes in an integer 
  
  //method that takes in a byte array and converts it 
  //to a text file named output.txt
@@ -167,7 +219,12 @@ public class ImageHiding extends JFrame implements ActionListener
    encodeBitsText.setText(Integer.toString(bits));
 
    s = new Steganography(this.getHostImage());
-   s.encode(this.getSecretImage(), bits);
+//   try {
+//	s.encode(this.getSecretImage(), bits);
+//} catch (IOException e) {
+//	// TODO Auto-generated catch block
+//	e.printStackTrace();
+//}
 
    hostCanvas.setImage(s.getImage());
    hostCanvas.repaint();
@@ -187,7 +244,12 @@ public class ImageHiding extends JFrame implements ActionListener
    encodeBitsText.setText(Integer.toString(bits));
 
    s = new Steganography(this.getHostImage());
-   s.encode(this.getSecretImage(), bits);
+//   try {
+//	s.encode(this.getSecretImage(), bits);
+//} catch (IOException e) {
+//	// TODO Auto-generated catch block
+//	e.printStackTrace();
+//}
 
    hostCanvas.setImage(s.getImage());
    hostCanvas.repaint();
@@ -262,14 +324,14 @@ public class ImageHiding extends JFrame implements ActionListener
   host.encode(this.getSecretImage(), this.getBits());
   hostCanvas.setImage(host.getImage());
 
-  StegByte secret = new StegByte(this.getByteArray());
+  //StegByte secret = new StegByte(this.getByteArray());
   
-  /*
+  
   Steganography secret = new Steganography(this.getSecretImage());
   //look here
   secret.getMaskedImage(this.getBits());
   secretCanvas.setImage(secret.getImage());
-*/
+
   this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
   this.pack();
 
@@ -284,9 +346,9 @@ public class ImageHiding extends JFrame implements ActionListener
   ImageHiding frame = new ImageHiding();
   frame.setVisible(true);
   
-  byte[] test = getByteArray();
-  System.out.println("length of file is "+test.length);
-  byteToFile(test);
+//  byte[] test = getByteArray();
+//  System.out.println("length of file is "+test.length);
+//  byteToFile(test);
   
  }
 
@@ -332,6 +394,7 @@ class StegByte{
 class Steganography
 {
  BufferedImage image;
+ ImageHiding ih;
 
  public void getMaskedImage(int bits)
  {
@@ -348,7 +411,7 @@ class Steganography
   image.setRGB(0, 0, image.getWidth(null), image.getHeight(null), imageRGB, 0, image.getWidth(null));
  }
 
- public void encode(BufferedImage encodeImage, int encodeBits)
+ public void encode(BufferedImage encodeImage, int encodeBits) throws IOException
  {
   int[] encodeRGB = encodeImage.getRGB(0, 0, encodeImage.getWidth(null), encodeImage.getHeight(null), null, 0, encodeImage.getWidth(null));
   int[] imageRGB = image.getRGB(0, 0, image.getWidth(null), image.getHeight(null), null, 0, image.getWidth(null));
@@ -359,14 +422,49 @@ class Steganography
   int decodeByteMask = ~(encodeByteMask >>> (8 - encodeBits)) & 0xFF;
   int hostMask = (decodeByteMask << 24) | (decodeByteMask << 16) | (decodeByteMask << 8) | decodeByteMask;
 
-  //call my getByteArray function 
-  //store that into an int array[]
+  int maskBits = (int)(Math.pow(2, 2)) - 1 << (8 - 2);
+  int mask = (maskBits << 24) | (maskBits << 16) | (maskBits << 8) | maskBits;
   
-  for (int i = 0; i < imageRGB.length; i++)
+  //call my getByteArray function 
+  byte[] byteTxtArr = ImageHiding.getByteArray();
+  System.out.println("byteTxtArr: "+ byteTxtArr);
+  //store that into an int array[]
+  int[] inputArr = ImageHiding.toIntArray(byteTxtArr);
+  System.out.println("inputArr: "+ inputArr);
+//convert this into an int array 
+	 //return an int array thats ready to go
+	 
+	 //n is the number of encode bits that we can specify
+	 int n = 2;
+	 int x = 1;
+	 int i = 1,o = 1;
+	 int inputLen = 0;
+	 inputLen = (inputArr.length * 8) / n;
+	 System.out.println("input size: " + inputLen);
+
+	 int[] outputArry = new int[10000000];
+	 System.out.println("outputArry size: "+ outputArry);
+	 
+	 while(x<= inputLen){
+		 outputArry[o] = (inputArr[i] & mask) | outputArry[o];
+		 outputArry[o] = outputArry[o] << 8;
+		 inputArr[i] = inputArr[i] >>> n;
+		 if((o % 4) == 0){
+			 o++;
+		 }
+		 if((i % (8/n)) == 0){
+			 i++;
+		 }
+		 x++;
+		 //System.out.println("outputArry: " + outputArry);
+	 }
+	 System.out.println("outputArry: " + outputArry);
+  
+  for (int i1 = 0; i < imageRGB.length; i++)
   {
-   //int encodeData = (encodeRGB[i] & encodeMask) >>> (8 - encodeBits);
-   imageRGB[i] = (imageRGB[i] & hostMask) | (encodeData & ~hostMask);
-   imageRGB[i] = (imageRGB[i]) &hostMask) | //int array[]
+   int encodeData = (encodeRGB[i1] & encodeMask) >>> (8 - encodeBits);
+   imageRGB[i1] = (imageRGB[i1] & hostMask) | (encodeData & ~hostMask);
+   imageRGB[i1] = (imageRGB[i1] & hostMask) | outputArry[i1];
   }
 
   image.setRGB(0, 0, image.getWidth(null), image.getHeight(null), imageRGB, 0, image.getWidth(null));
