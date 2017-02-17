@@ -72,6 +72,9 @@ public class ImageHiding extends JFrame implements ActionListener
 	 Path path = Paths.get("test.txt");
 	 byte[] data = Files.readAllBytes(path);
 	 return data;
+	 
+	 //convert this into an int array 
+	 //return an int array thats ready to go
  }
  
  //method that takes in a byte array and converts it 
@@ -356,10 +359,14 @@ class Steganography
   int decodeByteMask = ~(encodeByteMask >>> (8 - encodeBits)) & 0xFF;
   int hostMask = (decodeByteMask << 24) | (decodeByteMask << 16) | (decodeByteMask << 8) | decodeByteMask;
 
+  //call my getByteArray function 
+  //store that into an int array[]
+  
   for (int i = 0; i < imageRGB.length; i++)
   {
-   int encodeData = (encodeRGB[i] & encodeMask) >>> (8 - encodeBits);
+   //int encodeData = (encodeRGB[i] & encodeMask) >>> (8 - encodeBits);
    imageRGB[i] = (imageRGB[i] & hostMask) | (encodeData & ~hostMask);
+   imageRGB[i] = (imageRGB[i]) &hostMask) | //int array[]
   }
 
   image.setRGB(0, 0, image.getWidth(null), image.getHeight(null), imageRGB, 0, image.getWidth(null));
