@@ -1,3 +1,5 @@
+//Arnoldas Kurbanovas
+
 package proj1CSI526;
 import java.awt.*;
 import java.awt.event.*;
@@ -30,6 +32,8 @@ public class ImageHiding extends JFrame implements ActionListener
  JPanel imagePanel;
 
  JTextField encodeBitsText;
+ //added noChars
+ JTextField noChars;
  JButton encodeBitsPlus;
  JButton encodeBitsMinus;
 
@@ -217,6 +221,13 @@ public class ImageHiding extends JFrame implements ActionListener
    if (bits > 8) { bits = 8; }
 
    encodeBitsText.setText(Integer.toString(bits));
+   
+   //added
+   int width = this.getHostImage().getWidth();
+   int height = this.getHostImage().getHeight();
+   noChars.setText(Integer.toString((bits*(3*width*height))/8));
+   
+   
 
    s = new Steganography(this.getHostImage());
    try {
@@ -229,17 +240,23 @@ public class ImageHiding extends JFrame implements ActionListener
    hostCanvas.setImage(s.getImage());
    hostCanvas.repaint();
 
-   s = new Steganography(this.getSecretImage());
-   s.getMaskedImage(bits);
-
-   secretCanvas.setImage(s.getImage());
-   secretCanvas.repaint();
+//   s = new Steganography(this.getSecretImage());
+//   s.getMaskedImage(bits);
+//
+//   secretCanvas.setImage(s.getImage());
+//   secretCanvas.repaint();
   }
   else if (source == encodeBitsMinus)
   {
    int bits = this.getBits() - 1;
 
    if (bits < 0) { bits = 0; }
+   
+ //added
+   int width = this.getHostImage().getWidth();
+   int height = this.getHostImage().getHeight();
+   noChars.setText(Integer.toString((bits*(3*width*height))/8));
+   
 
    encodeBitsText.setText(Integer.toString(bits));
 
@@ -254,11 +271,11 @@ public class ImageHiding extends JFrame implements ActionListener
    hostCanvas.setImage(s.getImage());
    hostCanvas.repaint();
 
-   s = new Steganography(this.getSecretImage());
-   s.getMaskedImage(bits);
-
-   secretCanvas.setImage(s.getImage());
-   secretCanvas.repaint();
+//   s = new Steganography(this.getSecretImage());
+//   s.getMaskedImage(bits);
+//
+//   secretCanvas.setImage(s.getImage());
+//   secretCanvas.repaint();
   }
  }
 
@@ -302,7 +319,8 @@ public class ImageHiding extends JFrame implements ActionListener
   imagePanel.setLayout(imageGridbag);
 
   JLabel hostImageLabel = new JLabel("Host image:");
-  JLabel secretImageLabel = new JLabel("Secret image:");
+  //changed
+  JLabel secretImageLabel = new JLabel("Num of characters:");
 
   imagePanel.add(hostImageLabel);
 
@@ -311,10 +329,10 @@ public class ImageHiding extends JFrame implements ActionListener
   imagePanel.add(secretImageLabel);
 
   hostCanvas = new ImageCanvas(this.getHostImage());  
-  secretCanvas = new ImageCanvas(this.getSecretImage());
+  //secretCanvas = new ImageCanvas(this.getSecretImage());
 
   imagePanel.add(hostCanvas);
-  imagePanel.add(secretCanvas);
+  //imagePanel.add(secretCanvas);
 
   gbc.gridwidth = GridBagConstraints.REMAINDER;
   layout.setConstraints(imagePanel, gbc);
@@ -327,10 +345,10 @@ public class ImageHiding extends JFrame implements ActionListener
   //StegByte secret = new StegByte(this.getByteArray());
   
   
-  Steganography secret = new Steganography(this.getSecretImage());
+  //Steganography secret = new Steganography(this.getSecretImage());
   //look here
-  secret.getMaskedImage(this.getBits());
-  secretCanvas.setImage(secret.getImage());
+  //secret.getMaskedImage(this.getBits());
+  //secretCanvas.setImage(secret.getImage());
 
   this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
   this.pack();
@@ -411,6 +429,7 @@ class Steganography
   image.setRGB(0, 0, image.getWidth(null), image.getHeight(null), imageRGB, 0, image.getWidth(null));
  }
 
+ //change to take byte array 
  public void encode(BufferedImage encodeImage, int encodeBits) throws IOException
  {
   int[] encodeRGB = encodeImage.getRGB(0, 0, encodeImage.getWidth(null), encodeImage.getHeight(null), null, 0, encodeImage.getWidth(null));
