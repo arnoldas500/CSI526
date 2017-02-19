@@ -219,12 +219,12 @@ public class ImageHiding extends JFrame implements ActionListener
    encodeBitsText.setText(Integer.toString(bits));
 
    s = new Steganography(this.getHostImage());
-//   try {
-//	s.encode(this.getSecretImage(), bits);
-//} catch (IOException e) {
-//	// TODO Auto-generated catch block
-//	e.printStackTrace();
-//}
+   try {
+	s.encode(this.getSecretImage(), bits);
+} catch (IOException e) {
+	// TODO Auto-generated catch block
+	e.printStackTrace();
+}
 
    hostCanvas.setImage(s.getImage());
    hostCanvas.repaint();
@@ -244,12 +244,12 @@ public class ImageHiding extends JFrame implements ActionListener
    encodeBitsText.setText(Integer.toString(bits));
 
    s = new Steganography(this.getHostImage());
-//   try {
-//	s.encode(this.getSecretImage(), bits);
-//} catch (IOException e) {
-//	// TODO Auto-generated catch block
-//	e.printStackTrace();
-//}
+   try {
+	s.encode(this.getSecretImage(), bits);
+} catch (IOException e) {
+	// TODO Auto-generated catch block
+	e.printStackTrace();
+}
 
    hostCanvas.setImage(s.getImage());
    hostCanvas.repaint();
@@ -422,7 +422,7 @@ class Steganography
   int decodeByteMask = ~(encodeByteMask >>> (8 - encodeBits)) & 0xFF;
   int hostMask = (decodeByteMask << 24) | (decodeByteMask << 16) | (decodeByteMask << 8) | decodeByteMask;
 
-  int maskBits = (int)(Math.pow(2, 2)) - 1 << (8 - 2);
+  int maskBits = (int)(Math.pow(2, 4)) - 1 << (8 - 4);
   int mask = (maskBits << 24) | (maskBits << 16) | (maskBits << 8) | maskBits;
   
   //call my getByteArray function 
@@ -435,39 +435,48 @@ class Steganography
 	 //return an int array thats ready to go
 	 
 	 //n is the number of encode bits that we can specify
-	 int n = 2;
+	 int n = 4;
 	 int x = 1;
 	 int i = 1,o = 1;
 	 int inputLen = 0;
 	 inputLen = (inputArr.length * 8) / n;
 	 System.out.println("input size: " + inputLen);
 
-	 int[] outputArry = new int[10000000];
+	 int[] outputArry = new int[inputLen];
 	 System.out.println("outputArry size: "+ outputArry);
 	 
 	 while(x<= inputLen){
 		 outputArry[o] = (inputArr[i] & mask) | outputArry[o];
 		 outputArry[o] = outputArry[o] << 8;
 		 inputArr[i] = inputArr[i] >>> n;
-		 if((o % 4) == 0){
+		 if(x == 4){
 			 o++;
 		 }
-		 if((i % (8/n)) == 0){
+		 if(x == (8/n)){
 			 i++;
 		 }
+//		 if((o % 4) == 0){
+//			 o++;
+//		 }
+//		 if((i % (8/n)) == 0){
+//			 i++;
+//		 }
+		 
 		 x++;
-		 //System.out.println("outputArry: " + outputArry);
+		 System.out.println("outputArry: " + outputArry);
 	 }
 	 System.out.println("outputArry: " + outputArry);
   
   for (int i1 = 0; i < imageRGB.length; i++)
   {
-   int encodeData = (encodeRGB[i1] & encodeMask) >>> (8 - encodeBits);
-   imageRGB[i1] = (imageRGB[i1] & hostMask) | (encodeData & ~hostMask);
+   //int encodeData = (encodeRGB[i1] & encodeMask) >>> (8 - encodeBits);
+	  //imageRGB[i1] = (imageRGB[i1] & hostMask) | (inputArr[i1] & ~hostMask);
+   imageRGB[i1] = (imageRGB[i1] & hostMask) | (outputArry[i1] & ~hostMask);
    imageRGB[i1] = (imageRGB[i1] & hostMask) | outputArry[i1];
   }
 
   image.setRGB(0, 0, image.getWidth(null), image.getHeight(null), imageRGB, 0, image.getWidth(null));
+  
  }
 
  public Image getImage()
