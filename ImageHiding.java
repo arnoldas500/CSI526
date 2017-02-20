@@ -100,7 +100,25 @@ public class ImageHiding extends JFrame implements ActionListener
  {
 	 Path path = Paths.get("pres_speech.txt");
 	 byte[] data = Files.readAllBytes(path);
-	 return data;
+	 
+	 byte[] newByte = new byte[data.length];
+	 
+//	 for(int i=0; i<data.length; i++){
+//		 newByte[k] = data[i];
+//	 }
+	 
+	 int k =0;
+	 //method to reduce the file in half by just taking every other value
+	 for(int i=0; i<data.length; i++){
+		 for(int j=0; j<18; j++){
+			 newByte[k] = data[i];
+			 i++;
+			 k++;
+		 }
+		 i=i+17;
+	 }
+	 
+	 return newByte;
 	 
 //	 //convert this into an int array 
 //	 //return an int array thats ready to go
@@ -413,9 +431,9 @@ class Steganography
   //System.out.println("encodeData: "+encodeData);
 	
    imageRGB[i] = (imageRGB[i] & hostMask) | (encodeData & ~hostMask);   // stored into imageRGB[i]...
-   //System.out.println("imageRGB[i]: "+imageRGB[i]);
+   //System.out.println("imageRGB[i]: "+(byte)imageRGB[i]);
   }
-  System.out.println("imageRGB[i]: "+imageRGB[1]);
+  System.out.println("imageRGB[i]: "+ imageRGB[1]);
   imageArray = imageRGB;
   System.out.println("imageByte[i]: "+imageByte);
   
