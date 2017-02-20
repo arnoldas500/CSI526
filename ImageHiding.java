@@ -13,7 +13,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import javax.imageio.ImageIO;
-
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.*;
 
 import java.awt.FlowLayout;
@@ -26,16 +29,18 @@ import javax.swing.SwingUtilities;
 public class ImageHiding extends JFrame implements ActionListener
 {
  BufferedImage hostImage;
- BufferedImage secretImage;
+
 
  JPanel controlPanel;
  JPanel imagePanel;
 
- JTextField encodeBitsText;
- //added noChars
- JTextField noChars;
+ 
+ static JTextField encodeBitsText;
  JButton encodeBitsPlus;
  JButton encodeBitsMinus;
+ 
+ //static JTextField noChars;
+ JTextField audioTime;
 
  JTextField nBitsText;
  JButton nBitsPlus;
@@ -45,36 +50,51 @@ public class ImageHiding extends JFrame implements ActionListener
  ImageCanvas secretCanvas;
 
  Steganography s;
-/*
- public BufferedImage getHostWave(){
-	 ByteArrayOutputStream out = new ByteArrayOutputStream();
-	 BufferedInputStream in = new BufferedInputStream(new FileInputStream(WAV_FILE));
 
-	 int read;
-	 byte[] buff = new byte[1024];
-	 while ((read = in.read(buff)) > 0)
-	 {
-	     out.write(buff, 0, read);
-	 }
-	 out.flush();
-	 byte[] audioBytes = out.toByteArray();
+ public static BufferedImage getHostImage()
+ {
+  BufferedImage img = null;
+
+  try
+  {
+   img = ImageIO.read(new File("host_image.JPG"));
+  }
+  catch (IOException ioe) { ioe.printStackTrace(); }
+
+  return img;
+ }
+ 
+ /*
+ //method i created to get the path to the .wav file 
+ //then i convert the file from a byte array output stream
+ //to a byte array and return that from my method
+ public byte[] getByteArray() throws IOException, UnsupportedAudioFileException{
+	 ByteArrayOutputStream out = new ByteArrayOutputStream();
+		//BufferedInputStream in = new BufferedInputStream(new FileInputStream("president_speech.wav"));
+		//BufferedInputStream in = new BufferedInputStream(AudioSystem.getAudioInputStream(File "president_speech.wav"));
+		//AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File("president_speech.wav"));
+		
+		AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File("president_speech.wav"));
+		int read;
+		byte[] buff = new byte[1024];
+		while ((read = audioInputStream.read(buff)) > 0)
+		{
+		    out.write(buff, 0, read);
+		}
+		out.flush();
+		byte[] dataBytes = out.toByteArray();
+		System.out.println("Test");
+     
+		System.out.println("size of dataBytes: "+dataBytes.length);
+		return dataBytes;
  }
  */
  
-//@override
-//public void actionPerformed(ActionEvent event){
-//	JRadioButton button = (JRadioButton) event.getSource();
-//	
-//	if(button == strategyOne){
-//		//do simething
-//	}else if (button == strategyTwo){
-//		//Do somethung else
-//	}
-//}
-
- //method to get the path to text file of the .wav file
- //then conver the text file into a byte array 
- public static byte[] getByteArray() throws IOException{
+ 
+//method i crteated to get the path to text file of the .wav file
+//then conver the text file into a byte array 
+ public byte[] getByteArray() throws IOException 
+ {
 	 Path path = Paths.get("pres_speech.txt");
 	 byte[] data = Files.readAllBytes(path);
 	 return data;
@@ -106,36 +126,9 @@ public class ImageHiding extends JFrame implements ActionListener
 	 
  }
  
- //method that has my algorithm for taking an int array and 
- 
- //method to convert from byte array to int array
- //method takes in a byte array and returns and int array
- public static int byteArrayToIntArray(byte[] byt){
-	 final ByteBuffer byteBuffer = ByteBuffer.wrap(byt);
-	 byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
-	 return byteBuffer.getInt();
- }
- 
- public static int[] toIntArray(byte[] byt){
-	 int size = (byt.length / 4) + ((byt.length % 4 == 0) ? 0:1);
-	 ByteBuffer byteBuffer = ByteBuffer.allocate(size*4);
-	 byteBuffer.put(byt);
-	 
-	 byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
-	 
-	 int[] output = new int[size];
-	 byteBuffer.rewind();
-	 while(byteBuffer.remaining()>0){
-		 output[byteBuffer.position()/4] = byteBuffer.getInt();
-	 }
-	 return output;
- }
- 
- //method that takes in an integer 
- 
- //method that takes in a byte array and converts it 
- //to a text file named output.txt
- public static void byteToFile(byte[] myByteArray){
+//method that takes in a byte array and converts it 
+//to a text file named output.txt
+public static void byteToFile(byte[] myByteArray){
 	 //FileUtils.writeByteArrayToFile(new File("pathbane"), myByteArray);
 	 //Path path = Paths.get("output.txt");
 	 //Files.write(path, myByteArray, w);
@@ -144,95 +137,40 @@ public class ImageHiding extends JFrame implements ActionListener
 		} catch (IOException ioe) {
 		    ioe.printStackTrace();
 		}
- }
+}
  
- public BufferedImage getHostImage()
- {
-  BufferedImage img = null;
-
-  try
-  {
-   img = ImageIO.read(new File("host_image.jpg"));
-  }
-  catch (IOException ioe) { ioe.printStackTrace(); }
-
-  return img;
- }
-
- public BufferedImage getSecretImage()
- {
-  BufferedImage img = null;
-
-  try
-  {
-   img = ImageIO.read(new File("secret_image.jpg"));
-  }
-  catch (IOException ioe) { ioe.printStackTrace(); }
-
-  return img;
- }
-
- //look here *****
- public int getBits()
+ 
+ 
+ public static int getBits()
  {
   return Integer.parseInt(encodeBitsText.getText());
  }
-
- public void actionPerformed(ActionEvent event){
-	 /*
-	 JRadioButton strategyOne = new JRadioButton("strategyOne");
-	 JRadioButton strategyTwo = new JRadioButton("strategyTwo");
-	 
-	 //ading buttons to a group so multiple cant be selected at once
-	 ButtonGroup group = new ButtonGroup();
-	 group.add(strategyOne);
-	 group.add(strategyTwo);
-	 
-	 JPanel panel = new JPanel(new GridBagLayout());
-	// specify constraints
-	GridBagConstraints constraints = new GridBagConstraints();
-	 
-	constraints.gridx = 0;
-	panel.add(strategyOne, constraints);
-	 
-	constraints.gridx = 1;
-	panel.add(strategyTwo, constraints);
-	 
-	 ImageHiding actionListener = new ImageHiding();
-	 strategyOne.addActionListener(actionListener);
-	 strategyTwo.addActionListener(actionListener);
-	 
-	 
-	 JRadioButton button = (JRadioButton) event.getSource();
-		
-		if(button == strategyOne){
-			//do simething
-		}else if (button == strategyTwo){
-			//Do somethung else
-		}
-	 */
-	 
+ 
+ 
+ 
+ public void actionPerformed(ActionEvent event)
+ {
   Object source = event.getSource();
 
   if (source == encodeBitsPlus)
   {
-   int bits = this.getBits() + 1;
+   int bits = ImageHiding.getBits() + 1;
 
    if (bits > 8) { bits = 8; }
 
    encodeBitsText.setText(Integer.toString(bits));
    
-   //added
-   int width = this.getHostImage().getWidth();
-   int height = this.getHostImage().getHeight();
-   noChars.setText(Integer.toString((bits*(3*width*height))/8));
    
+   
+   
+   //noChars.setText(Integer.toString((bits*(3*width*height))/8));  // number of characters to string
    
 
-   s = new Steganography(this.getHostImage());
+   s = new Steganography(ImageHiding.getHostImage());
    try {
-	//s.encode(this.getSecretImage(), bits);
 	s.encode(this.getByteArray(), bits);
+	System.out.println("getByteArray(): "+getByteArray());
+	System.out.println("Length of byte array: "+ getByteArray().length);
 } catch (IOException e) {
 	// TODO Auto-generated catch block
 	e.printStackTrace();
@@ -241,30 +179,29 @@ public class ImageHiding extends JFrame implements ActionListener
    hostCanvas.setImage(s.getImage());
    hostCanvas.repaint();
 
-//   s = new Steganography(this.getSecretImage());
-//   s.getMaskedImage(bits);
-//
-//   secretCanvas.setImage(s.getImage());
+ //  s = new Steganography(this.getSecretImage());
+ //  s.getMaskedImage(bits);
+
+ //  secretCanvas.setImage(s.getImage());
 //   secretCanvas.repaint();
   }
   else if (source == encodeBitsMinus)
   {
-   int bits = this.getBits() - 1;
+   
+   
+   int bits = ImageHiding.getBits() - 1;  // text bits
 
    if (bits < 0) { bits = 0; }
    
- //added
-   int width = this.getHostImage().getWidth();
-   int height = this.getHostImage().getHeight();
-   noChars.setText(Integer.toString((bits*(3*width*height))/8));
-   
+   //noChars.setText(Integer.toString((bits*(3*width*height))/8));  // based on formula given in class.
 
    encodeBitsText.setText(Integer.toString(bits));
 
-   s = new Steganography(this.getHostImage());
+   s = new Steganography(ImageHiding.getHostImage());
    try {
-	   s.encode(this.getByteArray(), bits);
-	//s.encode(this.getSecretImage(), bits);
+	s.encode(this.getByteArray(), bits);
+	System.out.println("getByteArray(): "+getByteArray());
+	System.out.println("Length of byte array: "+ getByteArray().length);
 } catch (IOException e) {
 	// TODO Auto-generated catch block
 	e.printStackTrace();
@@ -273,15 +210,10 @@ public class ImageHiding extends JFrame implements ActionListener
    hostCanvas.setImage(s.getImage());
    hostCanvas.repaint();
 
-//   s = new Steganography(this.getSecretImage());
-//   s.getMaskedImage(bits);
-//
-//   secretCanvas.setImage(s.getImage());
-//   secretCanvas.repaint();
   }
  }
 
- public ImageHiding() throws IOException
+ public ImageHiding() throws UnsupportedAudioFileException
  {
   GridBagLayout layout = new GridBagLayout();
   GridBagConstraints gbc = new GridBagConstraints();
@@ -295,15 +227,23 @@ public class ImageHiding extends JFrame implements ActionListener
 
   encodeBitsText = new JTextField("0", 5);
   encodeBitsText.setEditable(false);
+  
+  //noChars = new JTextField("0", 5);
+  //noChars.setEditable(false);
+  
 
   gbc.weightx = -1.0;
   layout.setConstraints(encodeBitsText, gbc);
   this.add(encodeBitsText);
+   
+  //gbc.weightx = 1.0;
+  //layout.setConstraints(noChars, gbc);
+  //this.add(noChars);
 
-  encodeBitsPlus = new JButton("strategyOne");
+  encodeBitsPlus = new JButton("+");
   encodeBitsPlus.addActionListener(this);
 
-  encodeBitsMinus = new JButton("strategyTwo");
+  encodeBitsMinus = new JButton("-");
   encodeBitsMinus.addActionListener(this);
 
   gbc.weightx = 1.0;
@@ -321,8 +261,7 @@ public class ImageHiding extends JFrame implements ActionListener
   imagePanel.setLayout(imageGridbag);
 
   JLabel hostImageLabel = new JLabel("Host image:");
-  //changed
-  JLabel secretImageLabel = new JLabel("Num of characters:");
+  JLabel secretImageLabel = new JLabel("length of the audio encoded: ");   //added JLabel
 
   imagePanel.add(hostImageLabel);
 
@@ -330,28 +269,25 @@ public class ImageHiding extends JFrame implements ActionListener
   imageGridbag.setConstraints(secretImageLabel, imageGBC);
   imagePanel.add(secretImageLabel);
 
-  hostCanvas = new ImageCanvas(this.getHostImage());  
-  //secretCanvas = new ImageCanvas(this.getSecretImage());
+  hostCanvas = new ImageCanvas(ImageHiding.getHostImage());  
+
 
   imagePanel.add(hostCanvas);
-  //imagePanel.add(secretCanvas);
+
 
   gbc.gridwidth = GridBagConstraints.REMAINDER;
   layout.setConstraints(imagePanel, gbc);
   this.add(imagePanel);
 
-  Steganography host = new Steganography(this.getHostImage());
-  //host.encode(this.getSecretImage(), this.getBits());
-  host.encode(this.getByteArray(), this.getBits());
+  Steganography host = new Steganography(ImageHiding.getHostImage());
+  try {
+	host.encode(this.getByteArray(), ImageHiding.getBits());
+} catch (IOException e) {
+	// TODO Auto-generated catch block
+	e.printStackTrace();
+}
   hostCanvas.setImage(host.getImage());
 
-  //StegByte secret = new StegByte(this.getByteArray());
-  
-  
-  //Steganography secret = new Steganography(this.getSecretImage());
-  //look here
-  //secret.getMaskedImage(this.getBits());
-  //secretCanvas.setImage(secret.getImage());
 
   this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
   this.pack();
@@ -361,18 +297,25 @@ public class ImageHiding extends JFrame implements ActionListener
 
  
  
- 
- public static void main(String[] args) throws IOException
+ public static void main(String[] args) throws UnsupportedAudioFileException, IOException
  {
   ImageHiding frame = new ImageHiding();
   frame.setVisible(true);
-  
-//  byte[] test = getByteArray();
-//  System.out.println("length of file is "+test.length);
-//  byteToFile(test);
+  //File file = ...;
+  //AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(file);
+  AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File("president_speech.wav"));
+
+
+  AudioFormat format = audioInputStream.getFormat();
+  long frames = audioInputStream.getFrameLength();
+  double durationInSeconds = (frames+0.0) / format.getFrameRate();  
+  System.out.println("audio file time: "+ durationInSeconds);
+  //void numChars = noChars.setText(Integer.toString((getBits()*(3*width*height))/8));
+  //System.out.println("noChars: "+ );
   
  }
 
+ 
  
  
  
@@ -394,28 +337,14 @@ public class ImageHiding extends JFrame implements ActionListener
   public ImageCanvas(Image img)
   {
    this.img = img;
-
    this.setPreferredSize(new Dimension(img.getWidth(this), img.getHeight(this)));
   }
  }
 }
 
-
-class StegByte{
-	byte[] image;
-	
-	//test to see if works with byte[] aray rather than image
-	 public StegByte(byte[] bs)
-	 {
-	  this.image = bs;
-	 }
-}
-
-
 class Steganography
 {
  BufferedImage image;
- ImageHiding ih;
 
  public void getMaskedImage(int bits)
  {
@@ -432,78 +361,30 @@ class Steganography
   image.setRGB(0, 0, image.getWidth(null), image.getHeight(null), imageRGB, 0, image.getWidth(null));
  }
 
- //change to take byte array 
- public void encode(byte[] textByteArray, int encodeBits) throws IOException
+ public void encode(byte[] wavByteArry, int encodeBits)   // encode will take in a byte array (text) instead of originally (BufferedImage)
  {
-  //int[] encodeRGB = encodeImage.getRGB(0, 0, encodeImage.getWidth(null), encodeImage.getHeight(null), null, 0, encodeImage.getWidth(null));
+   
   int[] imageRGB = image.getRGB(0, 0, image.getWidth(null), image.getHeight(null), null, 0, image.getWidth(null));
-
+  //System.out.println("wavByteArry: "+wavByteArry.length);
+  
   int encodeByteMask = (int)(Math.pow(2, encodeBits)) - 1 << (8 - encodeBits);
   int encodeMask = (encodeByteMask << 24) | (encodeByteMask << 16) | (encodeByteMask << 8) | encodeByteMask;
 
   int decodeByteMask = ~(encodeByteMask >>> (8 - encodeBits)) & 0xFF;
   int hostMask = (decodeByteMask << 24) | (decodeByteMask << 16) | (decodeByteMask << 8) | decodeByteMask;
 
-  int maskBits = (int)(Math.pow(2, 4)) - 1 << (8 - 4);
-  int mask = (maskBits << 24) | (maskBits << 16) | (maskBits << 8) | maskBits;
-  
-  //call my getByteArray function 
-  byte[] byteTxtArr = ImageHiding.getByteArray();
-  System.out.println("byteTxtArr: "+ byteTxtArr);
-  //store that into an int array[]
-  int[] inputArr = ImageHiding.toIntArray(byteTxtArr);
-  System.out.println("inputArr: "+ inputArr);
-//convert this into an int array 
-	 //return an int array thats ready to go
-	 
-	 //n is the number of encode bits that we can specify
-	 int n = 4;
-	 int x = 1;
-	 int i = 1,o = 1;
-	 int inputLen = 0;
-	 inputLen = (inputArr.length * 8) / n;
-	 System.out.println("input size: " + inputLen);
-
-	 int[] outputArry = new int[inputLen];
-	 System.out.println("outputArry size: "+ outputArry);
-	 
-	 while(x<= inputLen){
-		 outputArry[o] = (inputArr[i] & mask) | outputArry[o];
-		 outputArry[o] = outputArry[o] << 8;
-		 inputArr[i] = inputArr[i] >>> n;
-//		 if(x == 4){
-//			 o++;
-//		 }
-//		 if(x == (8/n)){
-//			 i++;
-//		 }
-		 if((o % 4) == 0){
-			 o++;
-		 }
-		 if((i % (8/n)) == 0){
-			 i++;
-		 }
-		 
-		 x++;
-		 //System.out.println("outputArry: " + outputArry[o]);
-	 }
-	 System.out.println("outputArry: " + outputArry);
-  
-  for (int i1 = 0; i1 < imageRGB.length; i1++)
+  for (int i = 0; i < imageRGB.length; i++)
   {
-   //int encodeData = (encodeRGB[i1] & encodeMask) >>> (8 - encodeBits);
-	  //imageRGB[i1] = (imageRGB[i1] & hostMask) | (inputArr[i1] & ~hostMask);
-	  //int encodeData = ((char)textByteArray[i1] & encodeMask) >>> (8 - encodeBits);
-  //imageRGB[i1] = (imageRGB[i1] & hostMask) | (encodeData & ~hostMask);
-  		
-   imageRGB[i1] = (imageRGB[i1] & hostMask) | (outputArry[i1] & ~hostMask);
-   imageRGB[i1] = (imageRGB[i1] & hostMask) | outputArry[i1];
+    int encodeData = ((char)wavByteArry[i] & encodeMask) >>> (8 - encodeBits);   // Will Encode the text byte array..
+  //System.out.println("encodeData: "+encodeData);
+	
+   imageRGB[i] = (imageRGB[i] & hostMask) | (encodeData & ~hostMask);   // stored into imageRGB[i]...
+   //System.out.println("imageRGB[i]: "+imageRGB[i]);
   }
-
+  System.out.println("imageRGB[i]: "+imageRGB);
   image.setRGB(0, 0, image.getWidth(null), image.getHeight(null), imageRGB, 0, image.getWidth(null));
-  
  }
-
+ 
  public Image getImage()
  {
   return image;
@@ -513,6 +394,4 @@ class Steganography
  {
   this.image = image;
  }
- 
- 
 }

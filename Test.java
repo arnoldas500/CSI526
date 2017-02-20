@@ -113,6 +113,24 @@ public class Test extends JFrame implements ActionListener{
 		System.out.println("Test");
 		
 		
+		//getting audio files time
+		File file = ...;
+		AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(file);
+		AudioFormat format = audioInputStream.getFormat();
+		long frames = audioInputStream.getFrameLength();
+		double durationInSeconds = (frames+0.0) / format.getFrameRate();  
+		
+		/*
+		 * [y,fs] = audioread('C:/Users/akurb/Desktop/president_speech.wav');
+>> %variable y holds the samples of the audio file
+>> %variable fs holds the samling frequency
+>> t=linspace(0,length(y)/fs,length(y));
+>> %linspace is a built in function that creates the time vector
+>> %parameter 0 is the starting time, length y/fs is teh ending time
+>> %and length y is the number of samples in y
+>> plot(t,y);
+>> %the x axis is the time in seconds which is 1min22sec or 82sec
+		 */
 		
 		
 	}
