@@ -75,7 +75,7 @@ public class ImageHiding extends JFrame implements ActionListener
  //method to get the path to text file of the .wav file
  //then conver the text file into a byte array 
  public static byte[] getByteArray() throws IOException{
-	 Path path = Paths.get("test.txt");
+	 Path path = Paths.get("pres_speech.txt");
 	 byte[] data = Files.readAllBytes(path);
 	 return data;
 	 
@@ -231,7 +231,8 @@ public class ImageHiding extends JFrame implements ActionListener
 
    s = new Steganography(this.getHostImage());
    try {
-	s.encode(this.getSecretImage(), bits);
+	//s.encode(this.getSecretImage(), bits);
+	s.encode(this.getByteArray(), bits);
 } catch (IOException e) {
 	// TODO Auto-generated catch block
 	e.printStackTrace();
@@ -262,7 +263,8 @@ public class ImageHiding extends JFrame implements ActionListener
 
    s = new Steganography(this.getHostImage());
    try {
-	s.encode(this.getSecretImage(), bits);
+	   s.encode(this.getByteArray(), bits);
+	//s.encode(this.getSecretImage(), bits);
 } catch (IOException e) {
 	// TODO Auto-generated catch block
 	e.printStackTrace();
@@ -339,7 +341,8 @@ public class ImageHiding extends JFrame implements ActionListener
   this.add(imagePanel);
 
   Steganography host = new Steganography(this.getHostImage());
-  host.encode(this.getSecretImage(), this.getBits());
+  //host.encode(this.getSecretImage(), this.getBits());
+  host.encode(this.getByteArray(), this.getBits());
   hostCanvas.setImage(host.getImage());
 
   //StegByte secret = new StegByte(this.getByteArray());
@@ -430,9 +433,9 @@ class Steganography
  }
 
  //change to take byte array 
- public void encode(BufferedImage encodeImage, int encodeBits) throws IOException
+ public void encode(byte[] textByteArray, int encodeBits) throws IOException
  {
-  int[] encodeRGB = encodeImage.getRGB(0, 0, encodeImage.getWidth(null), encodeImage.getHeight(null), null, 0, encodeImage.getWidth(null));
+  //int[] encodeRGB = encodeImage.getRGB(0, 0, encodeImage.getWidth(null), encodeImage.getHeight(null), null, 0, encodeImage.getWidth(null));
   int[] imageRGB = image.getRGB(0, 0, image.getWidth(null), image.getHeight(null), null, 0, image.getWidth(null));
 
   int encodeByteMask = (int)(Math.pow(2, encodeBits)) - 1 << (8 - encodeBits);
@@ -468,28 +471,31 @@ class Steganography
 		 outputArry[o] = (inputArr[i] & mask) | outputArry[o];
 		 outputArry[o] = outputArry[o] << 8;
 		 inputArr[i] = inputArr[i] >>> n;
-		 if(x == 4){
-			 o++;
-		 }
-		 if(x == (8/n)){
-			 i++;
-		 }
-//		 if((o % 4) == 0){
+//		 if(x == 4){
 //			 o++;
 //		 }
-//		 if((i % (8/n)) == 0){
+//		 if(x == (8/n)){
 //			 i++;
 //		 }
+		 if((o % 4) == 0){
+			 o++;
+		 }
+		 if((i % (8/n)) == 0){
+			 i++;
+		 }
 		 
 		 x++;
-		 System.out.println("outputArry: " + outputArry);
+		 //System.out.println("outputArry: " + outputArry[o]);
 	 }
 	 System.out.println("outputArry: " + outputArry);
   
-  for (int i1 = 0; i < imageRGB.length; i++)
+  for (int i1 = 0; i1 < imageRGB.length; i1++)
   {
    //int encodeData = (encodeRGB[i1] & encodeMask) >>> (8 - encodeBits);
 	  //imageRGB[i1] = (imageRGB[i1] & hostMask) | (inputArr[i1] & ~hostMask);
+	  //int encodeData = ((char)textByteArray[i1] & encodeMask) >>> (8 - encodeBits);
+  //imageRGB[i1] = (imageRGB[i1] & hostMask) | (encodeData & ~hostMask);
+  		
    imageRGB[i1] = (imageRGB[i1] & hostMask) | (outputArry[i1] & ~hostMask);
    imageRGB[i1] = (imageRGB[i1] & hostMask) | outputArry[i1];
   }
