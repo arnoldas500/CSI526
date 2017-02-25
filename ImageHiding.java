@@ -40,7 +40,7 @@ public class ImageHiding extends JFrame implements ActionListener
  JButton encodeBitsPlus;
  JButton encodeBitsMinus;
  
- //static JTextField noChars;
+ static JTextField seconds;
  JTextField audioTime;
 
  JTextField nBitsText;
@@ -94,13 +94,39 @@ public class ImageHiding extends JFrame implements ActionListener
  */
  
  
+ //method to convert from byte array to int array
+ //method takes in a byte array and returns and int array
+ public static int byteArrayToIntArray(byte[] byt){
+	 final ByteBuffer byteBuffer = ByteBuffer.wrap(byt);
+	 byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+	 return byteBuffer.getInt();
+ }
+ 
+ public static int[] toIntArray(byte[] byt){
+	 int size = (byt.length / 4) + ((byt.length % 4 == 0) ? 0:1);
+	 ByteBuffer byteBuffer = ByteBuffer.allocate(size*4);
+	 byteBuffer.put(byt);
+	 
+	 byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+	 
+	 int[] output = new int[size];
+	 byteBuffer.rewind();
+	 while(byteBuffer.remaining()>0){
+		 output[byteBuffer.position()/4] = byteBuffer.getInt();
+	 }
+	 return output;
+ }
+ 
+ 
 //method i crteated to get the path to text file of the .wav file
 //then conver the text file into a byte array 
  public static byte[] getByteArray() throws IOException 
  {
 	 Path path = Paths.get("pres_speech.txt");
 	 byte[] data = Files.readAllBytes(path);
-	 
+	 return data;
+	 //used to make data smaller
+	 /*
 	 byte[] newByte = new byte[data.length];
 	 
 //	 for(int i=0; i<data.length; i++){
@@ -119,6 +145,7 @@ public class ImageHiding extends JFrame implements ActionListener
 	 }
 	 
 	 return newByte;
+	 */
 	 
 //	 //convert this into an int array 
 //	 //return an int array thats ready to go
@@ -164,7 +191,7 @@ public static void byteToFile(byte[] myByteArray){
  
  public static int getBits()
  {
-  return Integer.parseInt(encodeBitsText.getText());
+  return Integer.parseInt(encodeBitsText.getText())+1;
  }
  
  
@@ -181,11 +208,15 @@ public static void byteToFile(byte[] myByteArray){
 
    encodeBitsText.setText(Integer.toString(bits));
    
-   
+   double sec = Steganography.getSeconds();
+   System.out.println("sec "+ sec);
+   seconds.setText(Double.toString(sec)); 
    
    s = new Steganography(ImageHiding.getHostImage());
    try {
 	s.encode(this.getByteArray(), bits);
+//	double sec = Steganography.getSeconds();  
+//	seconds.setText(Double.toString(sec));
 	System.out.println("getByteArray(): "+ this.getByteArray());
 	System.out.println("Length of byte array: "+ this.getByteArray().length);
 } catch (IOException e) {
@@ -233,10 +264,11 @@ try {
   else if (source == encodeBitsMinus)
   {
    
+	  
    
    int bits = ImageHiding.getBits() - 1;  // text bits
 
-   if (bits < 0) { bits = 0; }
+   if (bits < 1) { bits = 1; }
    
    //noChars.setText(Integer.toString((bits*(3*width*height))/8));  // based on formula given in class.
 
@@ -273,17 +305,22 @@ try {
   encodeBitsText = new JTextField("0", 5);
   encodeBitsText.setEditable(false);
   
-  //noChars = new JTextField("0", 5);
-  //noChars.setEditable(false);
+  
+  
+  
+  
+  seconds = new JTextField("0", 10);
+  seconds.setEditable(false);
+  //seconds.setText(t);
   
 
   gbc.weightx = -1.0;
   layout.setConstraints(encodeBitsText, gbc);
   this.add(encodeBitsText);
    
-  //gbc.weightx = 1.0;
-  //layout.setConstraints(noChars, gbc);
-  //this.add(noChars);
+  gbc.weightx = 1.0;
+  layout.setConstraints(seconds, gbc);
+  this.add(seconds);
 
   encodeBitsPlus = new JButton("+");
   encodeBitsPlus.addActionListener(this);
@@ -356,7 +393,8 @@ try {
   double durationInSeconds = (frames+0.0) / format.getFrameRate();  
   System.out.println("audio file time: "+ durationInSeconds);
   
-  System.out.println("getimageArray: "+ Steganography.getimageArray());
+  
+  //System.out.println("getimageArray: "+ Steganography.getimageArray());
   
   
   
@@ -394,6 +432,7 @@ class Steganography
  BufferedImage image;
  static int[] imageArray;
  static byte[] imageByte = new byte[9999999];
+ static double seconds = 0;
  //static byte[] imageByte = new byte[ImageHiding.getByteArray().length];
  public void getMaskedImage(int bits)
  {
@@ -422,16 +461,84 @@ class Steganography
   int decodeByteMask = ~(encodeByteMask >>> (8 - encodeBits)) & 0xFF;
   int hostMask = (decodeByteMask << 24) | (decodeByteMask << 16) | (decodeByteMask << 8) | decodeByteMask;
   System.out.println(imageRGB.length);
-  for (int i = 0; i < imageRGB.length; i++)
-  {
-	  imageByte[i] = wavByteArry[i];
+  
+  System.out.println("encodeBits: "+ encodeBits);
+  int maskBits = (int)(Math.pow(2, encodeBits)) - 1 << (8 - encodeBits);
+  int mask = (maskBits << 24) | (maskBits << 16) | (maskBits << 8) | maskBits;
+  
+  //call my getByteArray function 
+  byte[] byteTxtArr = wavByteArry;
+  System.out.println("byteTxtArr: "+ byteTxtArr.length);
+  //store that into an int array[]
+  int[] inputArr = ImageHiding.toIntArray(byteTxtArr);
+  System.out.println("inputArr: "+ inputArr.length);
+//convert this into an int array 
+	 //return an int array thats ready to go
 	 
-	  //System.out.println("imageByte[i]: "+imageByte[i]);
-	  int encodeData = (wavByteArry[i] & encodeMask) >>> (8 - encodeBits);   // Will Encode the text byte array..
+	 //n is the number of encode bits that we can specify
+	 int n = encodeBits;
+	 int x = 1;
+	 int i = 1,o = 1;
+	 int inputLen = 0;
+	 
+	 inputLen = (inputArr.length ) ;
+	 System.out.println("input size: " + inputLen);
+
+	 int[] outputArry = new int[inputLen*(8/n)];
+	 System.out.println("outputArry size: "+ outputArry.length);
+	 
+	 while(x< inputLen ){
+		 outputArry[o] = (inputArr[i] & mask) | outputArry[o];
+		 outputArry[o] = outputArry[o] << 8;
+		 inputArr[i] = inputArr[i] >>> n;
+		 if((x % 4) == 0){
+			 o++;
+		 }
+		 if((x % (8/n)) == 0){
+			 i++;
+		 }
+		 x++;
+		 //System.out.println("outputArry: " + outputArry);
+	 }
+	 
+	 
+	 seconds = ((i)*(0.00000504));
+	 
+	 System.out.println("value of i: " + i);
+	 System.out.println("Seconds encoded: " + seconds);
+//	 
+//	 while(x<= inputLen){
+//		 outputArry[o] = (wavByteArry[i] & mask) | outputArry[o];
+//		 outputArry[o] = outputArry[o] << 8;
+//		 wavByteArry[i] = (byte) (wavByteArry[i] >>> n);
+//		 if((x % 4) == 0){
+//			 o++;
+//		 }
+//		 if((x % (8/n)) == 0){
+//			 i++;
+//		 }
+//	 }
+  
+  
+  
+  
+  for (int i1 = 0; i1 < imageRGB.length; i1++)
+  {
+	  /*
+	  imageByte[i1] = wavByteArry[i1];
+	 
+	  //System.out.println("imageByte[i1]: "+imageByte[i1]);
+	  int encodeData = (wavByteArry[i1] & encodeMask) >>> (8 - encodeBits);   // Will Encode the text byte array..
   //System.out.println("encodeData: "+encodeData);
 	
-   imageRGB[i] = (imageRGB[i] & hostMask) | (encodeData & ~hostMask);   // stored into imageRGB[i]...
-   //System.out.println("imageRGB[i]: "+(byte)imageRGB[i]);
+   imageRGB[i1] = (imageRGB[i1] & hostMask) | (encodeData & ~hostMask);   // stored into imageRGB[i]...
+   //System.out.println("imageRGB[i1]: "+(byte)imageRGB[i]);
+   */
+   //changes for using int output array
+   //int encodeData = (encodeRGB[i1] & encodeMask) >>> (8 - encodeBits);
+	  
+   //imageRGB[i1] = (imageRGB[i1] & hostMask) | (outputArry[i1] & ~hostMask);
+   imageRGB[i1] = (imageRGB[i1] & hostMask) | outputArry[i1];
   }
   System.out.println("imageRGB[i]: "+ imageRGB[1]);
   imageArray = imageRGB;
@@ -453,7 +560,7 @@ class Steganography
   ByteBuffer byteBuffer = ByteBuffer.allocate(imageArray.length * 4);        
   IntBuffer intBuffer = byteBuffer.asIntBuffer();
   intBuffer.put(imageArray);
-
+/*
   byte[] array = byteBuffer.array();
 
   for (int i=0; i < array.length; i++)
@@ -461,8 +568,13 @@ class Steganography
       //System.out.println(i + ": " + array[i]);
   }
   
+  */
   
-  
+ }
+ 
+ public static double getSeconds(){
+	 
+	return seconds;
  }
  
  public static int[] getimageArray(){
