@@ -321,14 +321,7 @@ public static void byteToFile(byte[] myByteArray){
    hostCanvas.setImage(s.getImage());
    hostCanvas.repaint();
    
-   
-   
 
- //  s = new Steganography(this.getSecretImage());
- //  s.getMaskedImage(bits);
-
- //  secretCanvas.setImage(s.getImage());
-//   secretCanvas.repaint();
   }
   else if (source == encodeBitsMinus)
   {
@@ -338,8 +331,7 @@ public static void byteToFile(byte[] myByteArray){
    int bits = ImageHiding.getBits() - 1;  // text bits
 
    if (bits < 1) { bits = 1; }
-   
-   //noChars.setText(Integer.toString((bits*(3*width*height))/8));  // based on formula given in class.
+
 
    encodeBitsText.setText(Integer.toString(bits));
 
